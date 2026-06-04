@@ -1,16 +1,19 @@
 using UnityEngine;
 
-public class BSPNode : MonoBehaviour
+public class BSPNode
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public RectInt Area;
+
+    public BSPNode LeftChild;
+    public BSPNode RightChild;
+
+    public BSPNode(RectInt area)
     {
-        
+        Area = area;
     }
 
-    // Update is called once per frame
-    void Update()
+    public bool IsLeaf()
     {
-        
+        return LeftChild == null && RightChild == null;
     }
 }

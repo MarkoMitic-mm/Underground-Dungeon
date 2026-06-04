@@ -1,16 +1,27 @@
 using UnityEngine;
 
-public class BSPGenerator : MonoBehaviour
+public class BSPGenerator
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public BSPNode GenerateTree(RectInt dungeonArea, int minRoomSize)
     {
-        
-    }
+        BSPNode root = new BSPNode(dungeonArea);
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        int splitX = dungeonArea.width / 2;
+
+        root.LeftChild = new BSPNode(
+            new RectInt(
+                dungeonArea.x,
+                dungeonArea.y,
+                splitX,
+                dungeonArea.height));
+
+        root.RightChild = new BSPNode(
+            new RectInt(
+                dungeonArea.x + splitX,
+                dungeonArea.y,
+                dungeonArea.width - splitX,
+                dungeonArea.height));
+
+        return root;
     }
 }
