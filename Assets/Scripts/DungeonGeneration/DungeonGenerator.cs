@@ -40,11 +40,18 @@ public class DungeonGenerator : MonoBehaviour
             minRoomSize
         );
 
+        // Erstellt Räume basierend auf den Blättern des BSP-Baums. Jeder Blattknoten repräsentiert einen potenziellen Raum.
+        RoomGenerator roomGenerator = new RoomGenerator();
+        _dungeonData.Rooms = roomGenerator.GenerateRooms(
+            _dungeonData.RootNode, _dungeonData
+        );
+
         // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
         Debug.Log($"Dungeon Area: {_dungeonData.RootNode.Area}");
         Debug.Log("Root: " + _dungeonData.RootNode.Area);
         Debug.Log("Left Child: " + _dungeonData.RootNode.LeftChild.Area);
         Debug.Log("Right Child: " + _dungeonData.RootNode.RightChild.Area);
+        Debug.Log($"Generated {_dungeonData.Rooms.Count} rooms");
     }
     /// <summary>
     /// Nächster Schritt: Rekursive Aufteilung der Bereiche, um weitere Unterbereiche zu erstellen.
@@ -76,8 +83,18 @@ public class DungeonGenerator : MonoBehaviour
             new Vector3(node.Area.width, node.Area.height, 0)
         );
 
-        //Rekursiv die Kinderknoten zeichnen, um die gesamte Struktur sichtbar zu machen.
-        if (node.LeftChild != null) DrawNode(node.LeftChild);
+        //Zeichnet den Raum innerhalb des Knotens, falls vorhanden, in Blau.
+        if (node.Room.HasValue)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireCube(
+                new Vector3(node.Room.Value.center.x, node.Room.Value.center.y, 0),
+                new Vector3(node.Room.Value.width, node.Room.Value.height, 0)
+            );
+        }
+
+            //Rekursiv die Kinderknoten zeichnen, um die gesamte Struktur sichtbar zu machen.
+            if (node.LeftChild != null) DrawNode(node.LeftChild);
         if (node.RightChild != null) DrawNode(node.RightChild);
     }
 }
