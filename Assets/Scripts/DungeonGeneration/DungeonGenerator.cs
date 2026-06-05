@@ -16,8 +16,9 @@ public class DungeonGenerator : MonoBehaviour
     // Kleinste erlaubte Raumgröße.
     public int minRoomSize = 10;
 
-    // Wurzelknoten des BSP-Baums.
-    private BSPNode rootNode;
+    // Speichert alle generierten Daten des Dungeons, einschließlich der BSP-Struktur, Räume und Korridore.
+    private DungeonData _dungeonData;
+
     void Start()
     {
         GenerateDungeon();
@@ -28,23 +29,55 @@ public class DungeonGenerator : MonoBehaviour
     /// </summary>
     void GenerateDungeon()
     {
+        // Initialisiert die Dungeon-Datenstruktur, um alle Informationen über den Dungeon zu speichern.
+        _dungeonData = new DungeonData();
+
         BSPGenerator bspGenerator = new BSPGenerator();
 
         // Starte die BSP-Aufteilung für den kompletten Dungeon.
-        rootNode = bspGenerator.GenerateTree(
+        _dungeonData.RootNode = bspGenerator.GenerateTree(
             new RectInt(0, 0, dungeonWidth, dungeonHeight),
             minRoomSize
         );
 
         // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
-        Debug.Log($"Dungeon Area: {rootNode.Area}");
-        Debug.Log("Root: " + rootNode.Area);
-        Debug.Log("Left Child: " + rootNode.LeftChild.Area);
-        Debug.Log("Right Child: " + rootNode.RightChild.Area);
+        Debug.Log($"Dungeon Area: {_dungeonData.RootNode.Area}");
+        Debug.Log("Root: " + _dungeonData.RootNode.Area);
+        Debug.Log("Left Child: " + _dungeonData.RootNode.LeftChild.Area);
+        Debug.Log("Right Child: " + _dungeonData.RootNode.RightChild.Area);
     }
     /// <summary>
     /// Nächster Schritt: Rekursive Aufteilung der Bereiche, um weitere Unterbereiche zu erstellen.
     /// Das bestehende erweitern und sichtbar machen, wie die Aufteilung weitergeht.
     /// Weitere Methoden zur Raum- und Korridorerzeugung würden hier folgen.
+    /// </summary> 
+
+
+    /// <summary>
+    /// Zeichnet den Dungeon im Editor.
     /// </summary>
+    void OnDrawGizmos()
+    {
+        if (_dungeonData?.RootNode == null) return;
+        DrawNode(_dungeonData.RootNode);
+    }
+
+    /// <summary>
+    /// Zeichnet den Bereich des aktuellen Knotens und seiner Kinder.
+    /// Blätter werden grün, innere Knoten weiß dargestellt.
+    /// </summary>
+    /// <param name="node"></param>
+    void DrawNode(BSPNode node)
+    {
+        //Zeichnet den Bereich des aktuellen Knotens. Blätter werden grün, innere Knoten weiß dargestellt.
+        Gizmos.color = node.IsLeaf() ? Color.green : Color.white;
+        Gizmos.DrawWireCube(
+            new Vector3(node.Area.center.x, node.Area.center.y, 0),
+            new Vector3(node.Area.width, node.Area.height, 0)
+        );
+
+        //Rekursiv die Kinderknoten zeichnen, um die gesamte Struktur sichtbar zu machen.
+        if (node.LeftChild != null) DrawNode(node.LeftChild);
+        if (node.RightChild != null) DrawNode(node.RightChild);
+    }
 }

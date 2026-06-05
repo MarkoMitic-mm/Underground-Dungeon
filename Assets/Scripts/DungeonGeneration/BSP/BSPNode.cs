@@ -14,6 +14,9 @@ public class BSPNode
     public BSPNode LeftChild;
     public BSPNode RightChild;
 
+    // Der Raum, der in diesem Knoten erstellt wird (null, wenn noch keiner erstellt wurde).
+    public RectInt? Room;
+
     //Erstellt einen neuen BSP-Knoten für den angegebenen Bereich.
     public BSPNode(RectInt area)
     {
