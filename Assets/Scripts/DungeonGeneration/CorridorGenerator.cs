@@ -71,13 +71,13 @@ namespace DungeonGeneration
         {
             if (node == null) return;
 
-            if (node.LeftChild != null && node.RightChild != null &&
-                node.LeftChild.Room.HasValue && node.RightChild.Room.HasValue)
-            {
-                Vector2Int a = Vector2Int.RoundToInt(node.LeftChild.Room.Value.center);
-                Vector2Int b = Vector2Int.RoundToInt(node.RightChild.Room.Value.center);
+            // Suche in beiden Teilbäumen jeweils eine Raum-Mitte (falls vorhanden)
+            Vector2Int? leftCenter = FindRoomCenter(node.LeftChild);
+            Vector2Int? rightCenter = FindRoomCenter(node.RightChild);
 
-                var corridor = CreateCorridor(a, b);
+            if (leftCenter.HasValue && rightCenter.HasValue)
+            {
+                var corridor = CreateCorridor(leftCenter.Value, rightCenter.Value);
                 foreach (var p in corridor)
                 {
                     dungeonData.CorridorTiles.Add(p);
@@ -88,6 +88,22 @@ namespace DungeonGeneration
 
             if (node.LeftChild != null) GenerateCorridorsRecursive(node.LeftChild, dungeonData);
             if (node.RightChild != null) GenerateCorridorsRecursive(node.RightChild, dungeonData);
+        }
+
+        // Findet rekursiv die nächste Room-Mitte im übergebenen Subtree.
+        // Gibt null zurück, falls kein Room im Subtree existiert.
+        private Vector2Int? FindRoomCenter(BSPNode node)
+        {
+            if (node == null) return null;
+            if (node.Room.HasValue)
+            {
+                return Vector2Int.RoundToInt(node.Room.Value.center);
+            }
+
+            // Suche bevorzugt in der linken Seite, dann rechts (wahlfrei)
+            Vector2Int? left = FindRoomCenter(node.LeftChild);
+            if (left.HasValue) return left;
+            return FindRoomCenter(node.RightChild);
         }
     }
 }
