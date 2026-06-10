@@ -1,14 +1,93 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CorridorGenerator
+namespace DungeonGeneration
 {
-    public List<Vector2Int> CreateCorridor(
-        Vector2Int start,
-        Vector2Int end)
+    public class CorridorGenerator
     {
-        List<Vector2Int> corridor = new();
+        // Erzeugt einen L-förmigen Korridor zwischen start und end auf einem Ganzzahl-Gitter.
+        // Gibt eine Liste von Gitterkoordinaten zurück, die den Korridorpfad bilden (inklusive Endpunkte).
+        // Der Korridor ist 1-Kachel breit. Die Biegerichtung wird zufällig gewählt, um Variation zu erzeugen.
+        public List<Vector2Int> CreateCorridor(
+            Vector2Int start,
+            Vector2Int end)
+        {
+            var corridor = new List<Vector2Int>();
 
-        return corridor;
+            // Zufällig wählen, ob horizontal->vertical oder vertical->horizontal gelaufen wird
+            bool horizontalFirst = Random.value > 0.5f;
+
+            Vector2Int current = start;
+            corridor.Add(current);
+
+            if (horizontalFirst)
+            {
+                // Horizontal bewegen, bis X übereinstimmt
+                int stepX = end.x > current.x ? 1 : -1;
+                while (current.x != end.x)
+                {
+                    current.x += stepX;
+                    corridor.Add(current);
+                }
+
+                // Dann vertikal zum Ziel Y bewegen
+                int stepY = end.y > current.y ? 1 : -1;
+                while (current.y != end.y)
+                {
+                    current.y += stepY;
+                    corridor.Add(current);
+                }
+            }
+            else
+            {
+                // Zuerst vertikal
+                int stepY = end.y > current.y ? 1 : -1;
+                while (current.y != end.y)
+                {
+                    current.y += stepY;
+                    corridor.Add(current);
+                }
+
+                int stepX = end.x > current.x ? 1 : -1;
+                while (current.x != end.x)
+                {
+                    current.x += stepX;
+                    corridor.Add(current);
+                }
+            }
+
+            return corridor;
+        }
+
+        // Public helper: Erzeuge einmalig alle Korridore für den BSP-Baum und fülle DungeonData
+        public void GenerateCorridors(BSPNode rootNode, DungeonData dungeonData)
+        {
+            if (rootNode == null || dungeonData == null) return;
+            dungeonData.CorridorTiles.Clear();
+            GenerateCorridorsRecursive(rootNode, dungeonData);
+        }
+
+        private void GenerateCorridorsRecursive(BSPNode node, DungeonData dungeonData)
+        {
+            if (node == null) return;
+
+            if (node.LeftChild != null && node.RightChild != null &&
+                node.LeftChild.Room.HasValue && node.RightChild.Room.HasValue)
+            {
+                Vector2Int a = Vector2Int.RoundToInt(node.LeftChild.Room.Value.center);
+                Vector2Int b = Vector2Int.RoundToInt(node.RightChild.Room.Value.center);
+
+                var corridor = CreateCorridor(a, b);
+                foreach (var p in corridor)
+                {
+                    dungeonData.CorridorTiles.Add(p);
+                    // Optional: Korridore auch als Boden markieren
+                    dungeonData.FloorTiles.Add(p);
+                }
+            }
+
+            if (node.LeftChild != null) GenerateCorridorsRecursive(node.LeftChild, dungeonData);
+            if (node.RightChild != null) GenerateCorridorsRecursive(node.RightChild, dungeonData);
+        }
     }
 }

@@ -21,6 +21,9 @@ namespace DungeonGeneration
         // Speichert alle generierten Daten des Dungeons, einschließlich der BSP-Struktur, Räume und Korridore.
         private DungeonData _dungeonData;
 
+        // Generator für Korridore
+        private CorridorGenerator _corridorGenerator;
+
         void Start()
         {
             GenerateDungeon();
@@ -48,6 +51,10 @@ namespace DungeonGeneration
                 _dungeonData.RootNode, _dungeonData
             );
 
+            // CorridorGenerator initialisieren und Korridore einmalig erzeugen (ausgelagert)
+            _corridorGenerator = new CorridorGenerator();
+            _corridorGenerator.GenerateCorridors(_dungeonData.RootNode, _dungeonData);
+
             // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
             Debug.Log($"Dungeon Area: {_dungeonData.RootNode.Area}");
             Debug.Log("Root: " + _dungeonData.RootNode.Area);
@@ -63,6 +70,17 @@ namespace DungeonGeneration
         {
             if (_dungeonData?.RootNode == null) return;
             DrawNode(_dungeonData.RootNode);
+
+            // Korridore stabil aus DungeonData zeichnen (kein erneutes Erzeugen)
+            if (_dungeonData.CorridorTiles != null && _dungeonData.CorridorTiles.Count > 0)
+            {
+                Gizmos.color = Color.red;
+                foreach (var p in _dungeonData.CorridorTiles)
+                {
+                    Vector3 center = new Vector3(p.x + 0.5f, p.y + 0.5f, 0);
+                    Gizmos.DrawCube(center, Vector3.one * 0.9f);
+                }
+            }
         }
 
         /// <summary>
