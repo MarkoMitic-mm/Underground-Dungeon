@@ -4,48 +4,59 @@ namespace DungeonGeneration
 {
     /// <summary>
     /// Einstiegspunkt der Dungeon-Generierung.
-    /// Erstellt beim Start einen BSP-Baum, der sp‰ter
+    /// Erstellt beim Start einen BSP-Baum, der sp√§ter
     /// zur Raum- und Korridorerzeugung verwendet wird.
     /// </summary>
     public class DungeonGenerator : MonoBehaviour
     {
         [Header("Dungeon Size")]
-        // Gesamtgrˆﬂe des Dungeons in Zellen/Tiles.
+        // Gesamtgr√∂√üe des Dungeons in Zellen/Tiles.
         public int dungeonWidth = 100;
         public int dungeonHeight = 100;
 
         [Header("BSP Settings")]
-        // Kleinste erlaubte Raumgrˆﬂe.
+        // Kleinste erlaubte Raumgr√∂√üe.
         public int minRoomSize = 10;
 
-        // Speichert alle generierten Daten des Dungeons, einschlieﬂlich der BSP-Struktur, R‰ume und Korridore.
+        // Speichert alle generierten Daten des Dungeons, einschlie√ülich der BSP-Struktur, R√§ume und Korridore.
         private DungeonData _dungeonData;
 
-        // Generator f¸r Korridore
+        // Generator f√ºr Korridore
         private CorridorGenerator _corridorGenerator;
+
+        // Visualizer f√ºr die Tilemaps
+        private TilemapVisualizer _tilemapVisualizer;
 
         void Start()
         {
+            // TilemapVisualizer aus der Szene laden
+            _tilemapVisualizer = GetComponent<TilemapVisualizer>();
+            if (_tilemapVisualizer == null)
+            {
+                Debug.LogError("TilemapVisualizer nicht gefunden! Bitte als Komponente hinzuf√ºgen.");
+                return;
+            }
+
             GenerateDungeon();
         }
 
         /// <summary>
-        /// Erstellt den BSP-Baum f¸r den gesamten Dungeonbereich.
+        /// Erstellt den BSP-Baum f√ºr den gesamten Dungeonbereich.
         /// </summary>
         void GenerateDungeon()
         {
-            // Initialisiert die Dungeon-Datenstruktur, um alle Informationen ¸ber den Dungeon zu speichern.
+            // Initialisiert die Dungeon-Datenstruktur, um alle Informationen √ºber den Dungeon zu speichern.
             _dungeonData = new DungeonData();
 
             BSPGenerator bspGenerator = new BSPGenerator();
 
-            // Starte die BSP-Aufteilung f¸r den kompletten Dungeon.
+            // Starte die BSP-Aufteilung f√ºr den kompletten Dungeon.
             _dungeonData.RootNode = bspGenerator.GenerateTree(
                 new RectInt(0, 0, dungeonWidth, dungeonHeight),
                 minRoomSize
             );
 
-            // Erstellt R‰ume basierend auf den Bl‰ttern des BSP-Baums. Jeder Blattknoten repr‰sentiert einen potenziellen Raum.
+            // Erstellt R√§ume basierend auf den Bl√§ttern des BSP-Baums. Jeder Blattknoten repr√§sentiert einen potenziellen Raum.
             RoomGenerator roomGenerator = new RoomGenerator();
             _dungeonData.Rooms = roomGenerator.GenerateRooms(
                 _dungeonData.RootNode, _dungeonData
@@ -55,12 +66,45 @@ namespace DungeonGeneration
             _corridorGenerator = new CorridorGenerator();
             _corridorGenerator.GenerateCorridors(_dungeonData.RootNode, _dungeonData);
 
+            // Visualisierung: R√§ume und Korridore auf die Tilemap zeichnen
+            VisualizeDungeon();
+
             // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
             Debug.Log($"Dungeon Area: {_dungeonData.RootNode.Area}");
             Debug.Log("Root: " + _dungeonData.RootNode.Area);
             Debug.Log("Left Child: " + _dungeonData.RootNode.LeftChild.Area);
             Debug.Log("Right Child: " + _dungeonData.RootNode.RightChild.Area);
             Debug.Log($"Generated {_dungeonData.Rooms.Count} rooms");
+        }
+
+        /// <summary>
+        /// Visualisiert den generierten Dungeon auf den Tilemaps.
+        /// </summary>
+        void VisualizeDungeon()
+        {
+            if (_tilemapVisualizer == null) return;
+
+            // Boden-Tiles f√ºr alle R√§ume zeichnen
+            var floorPositions = new System.Collections.Generic.List<Vector2Int>();
+            foreach (var room in _dungeonData.Rooms)
+            {
+                for (int x = room.Bounds.xMin; x < room.Bounds.xMax; x++)
+                {
+                    for (int y = room.Bounds.yMin; y < room.Bounds.yMax; y++)
+                    {
+                        floorPositions.Add(new Vector2Int(x, y));
+                    }
+                }
+            }
+            _tilemapVisualizer.PaintFloorTiles(floorPositions);
+
+            // Korridore zeichnen (falls vorhanden)
+            if (_dungeonData.CorridorTiles != null && _dungeonData.CorridorTiles.Count > 0)
+            {
+                _tilemapVisualizer.PaintFloorTiles(_dungeonData.CorridorTiles);
+            }
+
+            Debug.Log($"Visualisiert {floorPositions.Count} Boden-Tiles und {_dungeonData.CorridorTiles?.Count ?? 0} Korridor-Tiles");
         }
 
         /// <summary>
@@ -85,12 +129,12 @@ namespace DungeonGeneration
 
         /// <summary>
         /// Zeichnet den Bereich des aktuellen Knotens und seiner Kinder.
-        /// Bl‰tter werden gr¸n, innere Knoten weiﬂ dargestellt.
+        /// Bl√§tter werden gr√ºn, innere Knoten wei√ü dargestellt.
         /// </summary>
         /// <param name="node"></param>
         void DrawNode(BSPNode node)
         {
-            //Zeichnet den Bereich des aktuellen Knotens. Bl‰tter werden gr¸n, innere Knoten weiﬂ dargestellt.
+            //Zeichnet den Bereich des aktuellen Knotens. Bl√§tter werden gr√ºn, innere Knoten wei√ü dargestellt.
             Gizmos.color = node.IsLeaf() ? Color.green : Color.white;
             Gizmos.DrawWireCube(
                 new Vector3(node.Area.center.x, node.Area.center.y, 0),
