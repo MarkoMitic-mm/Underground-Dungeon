@@ -179,8 +179,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377b667535e4fd14eb5e8b2d03c22d62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
-  floorTilemap: {fileID: 0}
-  floorTile: {fileID: 0}
+  floorTilemap: {fileID: 2051793356}
+  floorTile: {fileID: 11400000, guid: 5edd683a5ada9264d872a22f06cb38dd, type: 2}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -447,6 +447,52 @@ Transform:
   - {fileID: 2051793353}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1851137607
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1851137609}
+  - component: {fileID: 1851137608}
+  m_Layer: 0
+  m_Name: TilemapVisualizer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1851137608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851137607}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 377b667535e4fd14eb5e8b2d03c22d62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
+  floorTilemap: {fileID: 2051793356}
+  floorTile: {fileID: 11400000, guid: 5edd683a5ada9264d872a22f06cb38dd, type: 2}
+--- !u!4 &1851137609
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1851137607}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2051793352
 GameObject:
   m_ObjectHideFlags: 0
@@ -460,7 +506,7 @@ GameObject:
   - component: {fileID: 2051793355}
   - component: {fileID: 2051793354}
   m_Layer: 0
-  m_Name: Tilemap
+  m_Name: Floor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -493,7 +539,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377b667535e4fd14eb5e8b2d03c22d62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
-  floorTilemap: {fileID: 2051793356}
+  floorTilemap: {fileID: 0}
   floorTile: {fileID: 0}
 --- !u!483693784 &2051793355
 TilemapRenderer:
@@ -597,3 +643,4 @@ SceneRoots:
   - {fileID: 619394802}
   - {fileID: 54214935}
   - {fileID: 959995130}
+  - {fileID: 1851137609}
