@@ -478,7 +478,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 377b667535e4fd14eb5e8b2d03c22d62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
-  floorTilemap: {fileID: 0}
+  floorTilemap: {fileID: 2051793356}
   floorTile: {fileID: 0}
 --- !u!483693784 &2051793355
 TilemapRenderer:
