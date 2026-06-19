@@ -7,6 +7,7 @@ public class TilemapVisualizer : MonoBehaviour
 {
     public Tilemap floorTilemap;
     public TileBase floorTile;
+    public TileBase wallTile;  // Neu hinzufügen
 
     // Einfache Komfortmethode, die im restlichen Code verwendet wird
     public void PaintFloorTiles(IEnumerable<Vector2Int> positions)

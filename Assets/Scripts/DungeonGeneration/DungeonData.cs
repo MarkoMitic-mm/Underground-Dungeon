@@ -8,4 +8,5 @@ public class DungeonData
     public HashSet<Vector2Int> FloorTiles { get; set; } = new HashSet<Vector2Int>();
     public Dictionary<Vector2Int, Room> TileToRoom { get; set; } = new Dictionary<Vector2Int, Room>();
     public HashSet<Vector2Int> CorridorTiles { get; set; } = new HashSet<Vector2Int>();
+    public HashSet<Vector2Int> WallTiles { get; set; } = new HashSet<Vector2Int>();
 }

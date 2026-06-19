@@ -151,7 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DungeonGenerator
   dungeonWidth: 100
   dungeonHeight: 100
-  minRoomSize: 10
+  minRoomSize: 20
 --- !u!4 &54214935
 Transform:
   m_ObjectHideFlags: 0
@@ -181,6 +181,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
   floorTilemap: {fileID: 2051793356}
   floorTile: {fileID: 11400000, guid: 5edd683a5ada9264d872a22f06cb38dd, type: 2}
+  wallTile: {fileID: 0}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -478,6 +479,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
   floorTilemap: {fileID: 2051793356}
   floorTile: {fileID: 11400000, guid: 5edd683a5ada9264d872a22f06cb38dd, type: 2}
+  wallTile: {fileID: 0}
 --- !u!4 &1851137609
 Transform:
   m_ObjectHideFlags: 0
@@ -541,6 +543,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TilemapVisualizer
   floorTilemap: {fileID: 0}
   floorTile: {fileID: 0}
+  wallTile: {fileID: 0}
 --- !u!483693784 &2051793355
 TilemapRenderer:
   serializedVersion: 2
@@ -613,7 +616,7 @@ Tilemap:
   m_TileColorArray: []
   m_TileObjectToInstantiateArray: []
   m_AnimationFrameRate: 1
-  m_Color: {r: 1, g: 0.98081034, b: 0.98039216, a: 0.9490196}
+  m_Color: {r: 0.8235294, g: 0.7058824, b: 0.54901963, a: 1}
   m_Origin: {x: 0, y: 0, z: 0}
   m_Size: {x: 0, y: 0, z: 1}
   m_TileAnchor: {x: 0.5, y: 0.5, z: 0}

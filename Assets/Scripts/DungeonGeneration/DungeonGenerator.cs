@@ -24,6 +24,9 @@ namespace DungeonGeneration
         // Generator für Korridore
         private CorridorGenerator _corridorGenerator;
 
+        // Generator für Wände
+        private WallGenerator _wallGenerator;
+
         // Visualizer für die Tilemaps
         private TilemapVisualizer _tilemapVisualizer;
 
@@ -66,7 +69,11 @@ namespace DungeonGeneration
             _corridorGenerator = new CorridorGenerator();
             _corridorGenerator.GenerateCorridors(_dungeonData.RootNode, _dungeonData);
 
-            // Visualisierung: Räume und Korridore auf die Tilemap zeichnen
+            // WallGenerator initialisieren und Wände generieren
+            _wallGenerator = new WallGenerator();
+            _dungeonData.WallTiles = _wallGenerator.CreateWalls(_dungeonData);
+
+            // Visualisierung: Räume, Korridore und Wände auf die Tilemaps zeichnen
             VisualizeDungeon();
 
             // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
@@ -75,6 +82,7 @@ namespace DungeonGeneration
             Debug.Log("Left Child: " + _dungeonData.RootNode.LeftChild.Area);
             Debug.Log("Right Child: " + _dungeonData.RootNode.RightChild.Area);
             Debug.Log($"Generated {_dungeonData.Rooms.Count} rooms");
+            Debug.Log($"Generated {_dungeonData.WallTiles.Count} walls");
         }
 
         /// <summary>
@@ -84,7 +92,7 @@ namespace DungeonGeneration
         {
             if (_tilemapVisualizer == null) return;
 
-            // Boden-Tiles für alle Räume zeichnen
+            // Räume zeichnen
             var floorPositions = new System.Collections.Generic.List<Vector2Int>();
             foreach (var room in _dungeonData.Rooms)
             {
@@ -98,13 +106,17 @@ namespace DungeonGeneration
             }
             _tilemapVisualizer.PaintFloorTiles(floorPositions);
 
-            // Korridore zeichnen (falls vorhanden)
+            // Korridore zeichnen (nutze deine bestehenden CorridorTiles)
             if (_dungeonData.CorridorTiles != null && _dungeonData.CorridorTiles.Count > 0)
             {
                 _tilemapVisualizer.PaintFloorTiles(_dungeonData.CorridorTiles);
             }
 
-            Debug.Log($"Visualisiert {floorPositions.Count} Boden-Tiles und {_dungeonData.CorridorTiles?.Count ?? 0} Korridor-Tiles");
+            // Wände zeichnen
+            if (_dungeonData.WallTiles != null && _dungeonData.WallTiles.Count > 0)
+            {
+                _tilemapVisualizer.PaintTiles(_tilemapVisualizer.floorTilemap, _tilemapVisualizer.wallTile, _dungeonData.WallTiles);
+            }
         }
 
         /// <summary>
