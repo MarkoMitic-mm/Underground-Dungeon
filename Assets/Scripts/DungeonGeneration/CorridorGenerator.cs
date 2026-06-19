@@ -1,109 +1,111 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace DungeonGeneration
+/// <summary>
+/// Erstellt Korridore zwischen den RÃ¤umen des BSP-Baums.
+/// Verbindet benachbarte Blattknoten miteinander.
+/// </summary>
+public class CorridorGenerator
 {
-    public class CorridorGenerator
+    /// <summary>
+    /// Generiert Korridore zwischen RÃ¤umen im BSP-Baum.
+    /// </summary>
+    /// <param name="rootNode">Der Wurzelknoten des BSP-Baums.</param>
+    /// <param name="dungeonData">Die Dungeon-Datenstruktur zum Speichern der Korridore.</param>
+    public void GenerateCorridors(BSPNode rootNode, DungeonData dungeonData)
     {
-        // Erzeugt einen L-förmigen Korridor zwischen start und end auf einem Ganzzahl-Gitter.
-        // Gibt eine Liste von Gitterkoordinaten zurück, die den Korridorpfad bilden (inklusive Endpunkte).
-        // Der Korridor ist 1-Kachel breit. Die Biegerichtung wird zufällig gewählt, um Variation zu erzeugen.
-        public List<Vector2Int> CreateCorridor(
-            Vector2Int start,
-            Vector2Int end)
+        GenerateCorridorsRecursive(rootNode, dungeonData);
+    }
+
+    /// <summary>
+    /// DurchlÃ¤uft den BSP-Baum rekursiv und erstellt Korridore zwischen Kinderknoten.
+    /// </summary>
+    private void GenerateCorridorsRecursive(BSPNode node, DungeonData dungeonData)
+    {
+        if (node.IsLeaf()) return;
+
+        // Verbinde linken und rechten Kindknoten
+        if (node.LeftChild != null && node.RightChild != null)
         {
-            var corridor = new List<Vector2Int>();
+            BSPNode leftNode = GetLeafNode(node.LeftChild);
+            BSPNode rightNode = GetLeafNode(node.RightChild);
 
-            // Zufällig wählen, ob horizontal->vertical oder vertical->horizontal gelaufen wird
-            bool horizontalFirst = Random.value > 0.5f;
-
-            Vector2Int current = start;
-            corridor.Add(current);
-
-            if (horizontalFirst)
+            if (leftNode?.Room.HasValue == true && rightNode?.Room.HasValue == true)
             {
-                // Horizontal bewegen, bis X übereinstimmt
-                int stepX = end.x > current.x ? 1 : -1;
-                while (current.x != end.x)
-                {
-                    current.x += stepX;
-                    corridor.Add(current);
-                }
-
-                // Dann vertikal zum Ziel Y bewegen
-                int stepY = end.y > current.y ? 1 : -1;
-                while (current.y != end.y)
-                {
-                    current.y += stepY;
-                    corridor.Add(current);
-                }
+                CreateCorridor(leftNode.Room.Value, rightNode.Room.Value, dungeonData);
             }
-            else
-            {
-                // Zuerst vertikal
-                int stepY = end.y > current.y ? 1 : -1;
-                while (current.y != end.y)
-                {
-                    current.y += stepY;
-                    corridor.Add(current);
-                }
-
-                int stepX = end.x > current.x ? 1 : -1;
-                while (current.x != end.x)
-                {
-                    current.x += stepX;
-                    corridor.Add(current);
-                }
-            }
-
-            return corridor;
         }
 
-        // Public helper: Erzeuge einmalig alle Korridore für den BSP-Baum und fülle DungeonData
-        public void GenerateCorridors(BSPNode rootNode, DungeonData dungeonData)
+        // Rekursiv fÃ¼r Kinder verarbeiten
+        if (node.LeftChild != null) GenerateCorridorsRecursive(node.LeftChild, dungeonData);
+        if (node.RightChild != null) GenerateCorridorsRecursive(node.RightChild, dungeonData);
+    }
+
+    /// <summary>
+    /// Findet den "reprÃ¤sentativen" Blattknoten eines Teilbaums (Ã¼blicherweise der erste Blatt).
+    /// </summary>
+    private BSPNode GetLeafNode(BSPNode node)
+    {
+        if (node.IsLeaf()) return node;
+        return node.LeftChild != null ? GetLeafNode(node.LeftChild) : GetLeafNode(node.RightChild);
+    }
+
+    /// <summary>
+    /// Erstellt einen L-fÃ¶rmigen Korridor zwischen zwei RÃ¤umen.
+    /// </summary>
+    private void CreateCorridor(RectInt room1, RectInt room2, DungeonData dungeonData)
+    {
+
+        Vector2Int start = Vector2Int.RoundToInt(room1.center);
+        Vector2Int end = Vector2Int.RoundToInt(room2.center);
+
+        // Horizontal dann Vertikal
+        if (Random.value > 0.5f)
         {
-            if (rootNode == null || dungeonData == null) return;
-            dungeonData.CorridorTiles.Clear();
-            GenerateCorridorsRecursive(rootNode, dungeonData);
+            CreateHorizontalCorridor(start.x, end.x, start.y, dungeonData);
+            CreateVerticalCorridor(start.y, end.y, end.x, dungeonData);
         }
-
-        private void GenerateCorridorsRecursive(BSPNode node, DungeonData dungeonData)
+        else
         {
-            if (node == null) return;
-
-            // Suche in beiden Teilbäumen jeweils eine Raum-Mitte (falls vorhanden)
-            Vector2Int? leftCenter = FindRoomCenter(node.LeftChild);
-            Vector2Int? rightCenter = FindRoomCenter(node.RightChild);
-
-            if (leftCenter.HasValue && rightCenter.HasValue)
-            {
-                var corridor = CreateCorridor(leftCenter.Value, rightCenter.Value);
-                foreach (var p in corridor)
-                {
-                    dungeonData.CorridorTiles.Add(p);
-                    // Optional: Korridore auch als Boden markieren
-                    dungeonData.FloorTiles.Add(p);
-                }
-            }
-
-            if (node.LeftChild != null) GenerateCorridorsRecursive(node.LeftChild, dungeonData);
-            if (node.RightChild != null) GenerateCorridorsRecursive(node.RightChild, dungeonData);
+            // Vertikal dann Horizontal
+            CreateVerticalCorridor(start.y, end.y, start.x, dungeonData);
+            CreateHorizontalCorridor(start.x, end.x, end.y, dungeonData);
         }
+    }
 
-        // Findet rekursiv die nächste Room-Mitte im übergebenen Subtree.
-        // Gibt null zurück, falls kein Room im Subtree existiert.
-        private Vector2Int? FindRoomCenter(BSPNode node)
+    /// <summary>
+    /// Erstellt einen horizontalen Korridorabschnitt.
+    /// </summary>
+    private void CreateHorizontalCorridor(int x1, int x2, int y, DungeonData dungeonData)
+    {
+        int minX = Mathf.Min(x1, x2);
+        int maxX = Mathf.Max(x1, x2);
+
+        for (int x = minX; x <= maxX; x++)
         {
-            if (node == null) return null;
-            if (node.Room.HasValue)
+            Vector2Int pos = new Vector2Int(x, y);
+            if (!dungeonData.FloorTiles.Contains(pos))
             {
-                return Vector2Int.RoundToInt(node.Room.Value.center);
+                dungeonData.CorridorTiles.Add(pos);
             }
+        }
+    }
 
-            // Suche bevorzugt in der linken Seite, dann rechts (wahlfrei)
-            Vector2Int? left = FindRoomCenter(node.LeftChild);
-            if (left.HasValue) return left;
-            return FindRoomCenter(node.RightChild);
+    /// <summary>
+    /// Erstellt einen vertikalen Korridorabschnitt.
+    /// </summary>
+    private void CreateVerticalCorridor(int y1, int y2, int x, DungeonData dungeonData)
+    {
+        int minY = Mathf.Min(y1, y2);
+        int maxY = Mathf.Max(y1, y2);
+
+        for (int y = minY; y <= maxY; y++)
+        {
+            Vector2Int pos = new Vector2Int(x, y);
+            if (!dungeonData.FloorTiles.Contains(pos))
+            {
+                dungeonData.CorridorTiles.Add(pos);
+            }
         }
     }
 }
