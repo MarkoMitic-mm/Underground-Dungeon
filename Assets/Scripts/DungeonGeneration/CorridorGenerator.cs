@@ -24,30 +24,54 @@ public class CorridorGenerator
     {
         if (node.IsLeaf()) return;
 
-        // Verbinde linken und rechten Kindknoten
-        if (node.LeftChild != null && node.RightChild != null)
-        {
-            BSPNode leftNode = GetLeafNode(node.LeftChild);
-            BSPNode rightNode = GetLeafNode(node.RightChild);
+        if (node.LeftChild != null) GenerateCorridorsRecursive(node.LeftChild, dungeonData);
+        if (node.RightChild != null) GenerateCorridorsRecursive(node.RightChild, dungeonData);
 
-            if (leftNode?.Room.HasValue == true && rightNode?.Room.HasValue == true)
+        // get all leaves from each side
+        List<BSPNode> leftLeaves = GetAllLeaves(node.LeftChild);
+        List<BSPNode> rightLeaves = GetAllLeaves(node.RightChild);
+
+        // find the closest pair between the two sides
+        BSPNode bestLeft = null;
+        BSPNode bestRight = null;
+        float bestDist = float.MaxValue;
+
+        foreach (BSPNode left in leftLeaves)
+        {
+            if (!left.Room.HasValue) continue;
+            foreach (BSPNode right in rightLeaves)
             {
-                CreateCorridor(leftNode.Room.Value, rightNode.Room.Value, dungeonData);
+                if (!right.Room.HasValue) continue;
+                float dist = Vector2Int.Distance(
+                    Vector2Int.RoundToInt(left.Room.Value.center),
+                    Vector2Int.RoundToInt(right.Room.Value.center)
+                );
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    bestLeft = left;
+                    bestRight = right;
+                }
             }
         }
 
-        // Rekursiv für Kinder verarbeiten
-        if (node.LeftChild != null) GenerateCorridorsRecursive(node.LeftChild, dungeonData);
-        if (node.RightChild != null) GenerateCorridorsRecursive(node.RightChild, dungeonData);
+        if (bestLeft != null && bestRight != null)
+            CreateCorridor(bestLeft.Room.Value, bestRight.Room.Value, dungeonData);
     }
 
-    /// <summary>
-    /// Findet den "repräsentativen" Blattknoten eines Teilbaums (üblicherweise der erste Blatt).
-    /// </summary>
-    private BSPNode GetLeafNode(BSPNode node)
+    private List<BSPNode> GetAllLeaves(BSPNode node)
     {
-        if (node.IsLeaf()) return node;
-        return node.LeftChild != null ? GetLeafNode(node.LeftChild) : GetLeafNode(node.RightChild);
+        List<BSPNode> leaves = new List<BSPNode>();
+        CollectLeaves(node, leaves);
+        return leaves;
+    }
+
+    private void CollectLeaves(BSPNode node, List<BSPNode> leaves)
+    {
+        if (node == null) return;
+        if (node.IsLeaf()) { leaves.Add(node); return; }
+        CollectLeaves(node.LeftChild, leaves);
+        CollectLeaves(node.RightChild, leaves);
     }
 
     /// <summary>
