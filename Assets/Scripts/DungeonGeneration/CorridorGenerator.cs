@@ -7,6 +7,9 @@ using UnityEngine;
 /// </summary>
 public class CorridorGenerator
 {
+
+    private int _corridorWidth;
+
     /// <summary>
     /// Generiert Korridore zwischen Räumen im BSP-Baum.
     /// </summary>
@@ -15,6 +18,15 @@ public class CorridorGenerator
     public void GenerateCorridors(BSPNode rootNode, DungeonData dungeonData)
     {
         GenerateCorridorsRecursive(rootNode, dungeonData);
+    }
+
+    /// <summary>
+    /// Initialisiert den Korridorgenerator mit einer bestimmten Breite.
+    /// </summary>
+    /// <param name="corridorWidth">Die Breite der Korridore.</param>
+    public CorridorGenerator(int corridorWidth = 2)
+    {
+        _corridorWidth = corridorWidth;
     }
 
     /// <summary>
@@ -107,10 +119,11 @@ public class CorridorGenerator
 
         for (int x = minX; x <= maxX; x++)
         {
-            Vector2Int pos = new Vector2Int(x, y);
-            if (!dungeonData.FloorTiles.Contains(pos))
+            for (int w = 0; w < _corridorWidth; w++)
             {
-                dungeonData.CorridorTiles.Add(pos);
+                Vector2Int pos = new Vector2Int(x, y + w);
+                if (!dungeonData.FloorTiles.Contains(pos))
+                    dungeonData.CorridorTiles.Add(pos);
             }
         }
     }
@@ -125,10 +138,11 @@ public class CorridorGenerator
 
         for (int y = minY; y <= maxY; y++)
         {
-            Vector2Int pos = new Vector2Int(x, y);
-            if (!dungeonData.FloorTiles.Contains(pos))
+            for (int w = 0; w < _corridorWidth; w++)
             {
-                dungeonData.CorridorTiles.Add(pos);
+                Vector2Int pos = new Vector2Int(x + w, y);
+                if (!dungeonData.FloorTiles.Contains(pos))
+                    dungeonData.CorridorTiles.Add(pos);
             }
         }
     }

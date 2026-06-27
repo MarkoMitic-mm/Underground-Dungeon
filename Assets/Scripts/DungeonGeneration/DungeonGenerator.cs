@@ -1,4 +1,6 @@
 using UnityEngine;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace DungeonGeneration
 {
@@ -17,6 +19,18 @@ namespace DungeonGeneration
         [Header("BSP Settings")]
         // Kleinste erlaubte Raumgröße.
         public int minRoomSize = 10;
+
+        [Header("Visualizer Settings")]
+        // Verzögerung zwischen den Schritten der Visualisierung (falls benötigt).
+        public float stepDelay = 0.5f;
+
+        [Header("Game Settings")]
+        // Referenz zum Spielerobjekt, das im Dungeon platziert werden soll.
+        public GameObject player;
+
+        [Header("Corridor Settings")]
+        // Breite der Korridore, die zwischen den Räumen erzeugt werden.
+        public int corridorWidth = 2;
 
         // Speichert alle generierten Daten des Dungeons, einschließlich der BSP-Struktur, Räume und Korridore.
         private DungeonData _dungeonData;
@@ -40,14 +54,17 @@ namespace DungeonGeneration
                 return;
             }
 
-            GenerateDungeon();
+            StartCoroutine(GenerateDungeonStepByStep());
         }
 
         /// <summary>
         /// Erstellt den BSP-Baum für den gesamten Dungeonbereich.
         /// </summary>
-        void GenerateDungeon()
+        IEnumerator GenerateDungeonStepByStep()
         {
+            if (player != null)
+                player.SetActive(false);
+
             // Initialisiert die Dungeon-Datenstruktur, um alle Informationen über den Dungeon zu speichern.
             _dungeonData = new DungeonData();
 
@@ -58,6 +75,8 @@ namespace DungeonGeneration
                 new RectInt(0, 0, dungeonWidth, dungeonHeight),
                 minRoomSize
             );
+            Debug.Log("Step 1: BSP tree built");
+            yield return new WaitForSeconds(stepDelay);
 
             // Erstellt Räume basierend auf den Blättern des BSP-Baums. Jeder Blattknoten repräsentiert einen potenziellen Raum.
             RoomGenerator roomGenerator = new RoomGenerator();
@@ -65,16 +84,39 @@ namespace DungeonGeneration
                 _dungeonData.RootNode, _dungeonData
             );
 
+            _dungeonData.SpawnPoint = _dungeonData.Rooms[0].Center;
+
+            Debug.Log($"Spawn point: {_dungeonData.SpawnPoint}");
+            Debug.Log($"First room center: {_dungeonData.Rooms[0].Center}");
+
+            var floorPositions = new List<Vector2Int>();
+            foreach (var room in _dungeonData.Rooms)
+            {
+                for (int x = room.Bounds.xMin; x < room.Bounds.xMax; x++)
+                    for (int y = room.Bounds.yMin; y < room.Bounds.yMax; y++)
+                        floorPositions.Add(new Vector2Int(x, y));
+            }
+            _tilemapVisualizer.PaintFloorTiles(floorPositions);
+            Debug.Log($"Step 2: {_dungeonData.Rooms.Count} rooms generated");
+            yield return new WaitForSeconds(stepDelay);
+
             // CorridorGenerator initialisieren und Korridore einmalig erzeugen (ausgelagert)
-            _corridorGenerator = new CorridorGenerator();
+            _corridorGenerator = new CorridorGenerator(corridorWidth);
             _corridorGenerator.GenerateCorridors(_dungeonData.RootNode, _dungeonData);
+            _tilemapVisualizer.PaintFloorTiles(_dungeonData.CorridorTiles);
+            Debug.Log("Step 3: Corridors generated");
+            yield return new WaitForSeconds(stepDelay);
 
             // WallGenerator initialisieren und Wände generieren
             _wallGenerator = new WallGenerator();
             _dungeonData.WallTiles = _wallGenerator.CreateWalls(_dungeonData);
+            Debug.Log("Step 4: Walls generated");
 
-            // Visualisierung: Räume, Korridore und Wände auf die Tilemaps zeichnen
-            VisualizeDungeon();
+            // Wände auf der Tilemap visualisieren
+            if (_dungeonData.WallTiles != null && _dungeonData.WallTiles.Count > 0)
+            {
+                _tilemapVisualizer.PaintTiles(_tilemapVisualizer.floorTilemap, _tilemapVisualizer.wallTile, _dungeonData.WallTiles);
+            }
 
             // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
             Debug.Log($"Dungeon Area: {_dungeonData.RootNode.Area}");
@@ -83,6 +125,16 @@ namespace DungeonGeneration
             Debug.Log("Right Child: " + _dungeonData.RootNode.RightChild.Area);
             Debug.Log($"Generated {_dungeonData.Rooms.Count} rooms");
             Debug.Log($"Generated {_dungeonData.WallTiles.Count} walls");
+
+            if (player != null)
+            {
+                player.transform.position = new Vector3(
+                    _dungeonData.SpawnPoint.x,
+                    _dungeonData.SpawnPoint.y,
+                    0
+                );
+                player.SetActive(true);
+            }
         }
 
         /// <summary>
