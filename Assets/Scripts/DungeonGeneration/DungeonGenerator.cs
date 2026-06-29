@@ -44,6 +44,9 @@ namespace DungeonGeneration
         // Visualizer für die Tilemaps
         private TilemapVisualizer _tilemapVisualizer;
 
+        /// <summary>
+        /// Initialisiert die Dungeon-Generierung und startet den Visualisierungsprozess.
+        /// </summary>
         void Start()
         {
             // TilemapVisualizer aus der Szene laden
@@ -66,29 +69,10 @@ namespace DungeonGeneration
                 player.SetActive(false);
 
             // Initialisiert die Dungeon-Datenstruktur, um alle Informationen über den Dungeon zu speichern.
-            _dungeonData = new DungeonData();
-
-            BSPGenerator bspGenerator = new BSPGenerator();
-
-            // Starte die BSP-Aufteilung für den kompletten Dungeon.
-            _dungeonData.RootNode = bspGenerator.GenerateTree(
-                new RectInt(0, 0, dungeonWidth, dungeonHeight),
-                minRoomSize
-            );
-            Debug.Log("Step 1: BSP tree built");
+            _dungeonData = DungeonManager.Instance.DungeonData;
             yield return new WaitForSeconds(stepDelay);
 
-            // Erstellt Räume basierend auf den Blättern des BSP-Baums. Jeder Blattknoten repräsentiert einen potenziellen Raum.
-            RoomGenerator roomGenerator = new RoomGenerator();
-            _dungeonData.Rooms = roomGenerator.GenerateRooms(
-                _dungeonData.RootNode, _dungeonData
-            );
-
-            _dungeonData.SpawnPoint = _dungeonData.Rooms[0].Center;
-
-            Debug.Log($"Spawn point: {_dungeonData.SpawnPoint}");
-            Debug.Log($"First room center: {_dungeonData.Rooms[0].Center}");
-
+            // Zeichnet jeden Raum innerhalb des BSP-Baums und speichert die Raumdaten.
             var floorPositions = new List<Vector2Int>();
             foreach (var room in _dungeonData.Rooms)
             {
@@ -97,20 +81,11 @@ namespace DungeonGeneration
                         floorPositions.Add(new Vector2Int(x, y));
             }
             _tilemapVisualizer.PaintFloorTiles(floorPositions);
-            Debug.Log($"Step 2: {_dungeonData.Rooms.Count} rooms generated");
             yield return new WaitForSeconds(stepDelay);
 
-            // CorridorGenerator initialisieren und Korridore einmalig erzeugen (ausgelagert)
-            _corridorGenerator = new CorridorGenerator(corridorWidth);
-            _corridorGenerator.GenerateCorridors(_dungeonData.RootNode, _dungeonData);
+            // Korridore werden visualisiert
             _tilemapVisualizer.PaintFloorTiles(_dungeonData.CorridorTiles);
-            Debug.Log("Step 3: Corridors generated");
             yield return new WaitForSeconds(stepDelay);
-
-            // WallGenerator initialisieren und Wände generieren
-            _wallGenerator = new WallGenerator();
-            _dungeonData.WallTiles = _wallGenerator.CreateWalls(_dungeonData);
-            Debug.Log("Step 4: Walls generated");
 
             // Wände auf der Tilemap visualisieren
             if (_dungeonData.WallTiles != null && _dungeonData.WallTiles.Count > 0)
@@ -118,14 +93,7 @@ namespace DungeonGeneration
                 _tilemapVisualizer.PaintTiles(_tilemapVisualizer.floorTilemap, _tilemapVisualizer.wallTile, _dungeonData.WallTiles);
             }
 
-            // Debug-Ausgaben zur Kontrolle der ersten Aufteilung.
-            Debug.Log($"Dungeon Area: {_dungeonData.RootNode.Area}");
-            Debug.Log("Root: " + _dungeonData.RootNode.Area);
-            Debug.Log("Left Child: " + _dungeonData.RootNode.LeftChild.Area);
-            Debug.Log("Right Child: " + _dungeonData.RootNode.RightChild.Area);
-            Debug.Log($"Generated {_dungeonData.Rooms.Count} rooms");
-            Debug.Log($"Generated {_dungeonData.WallTiles.Count} walls");
-
+            // Spieler an der Spawn-Position platzieren
             if (player != null)
             {
                 player.transform.position = new Vector3(
@@ -134,40 +102,6 @@ namespace DungeonGeneration
                     0
                 );
                 player.SetActive(true);
-            }
-        }
-
-        /// <summary>
-        /// Visualisiert den generierten Dungeon auf den Tilemaps.
-        /// </summary>
-        void VisualizeDungeon()
-        {
-            if (_tilemapVisualizer == null) return;
-
-            // Räume zeichnen
-            var floorPositions = new System.Collections.Generic.List<Vector2Int>();
-            foreach (var room in _dungeonData.Rooms)
-            {
-                for (int x = room.Bounds.xMin; x < room.Bounds.xMax; x++)
-                {
-                    for (int y = room.Bounds.yMin; y < room.Bounds.yMax; y++)
-                    {
-                        floorPositions.Add(new Vector2Int(x, y));
-                    }
-                }
-            }
-            _tilemapVisualizer.PaintFloorTiles(floorPositions);
-
-            // Korridore zeichnen (nutze deine bestehenden CorridorTiles)
-            if (_dungeonData.CorridorTiles != null && _dungeonData.CorridorTiles.Count > 0)
-            {
-                _tilemapVisualizer.PaintFloorTiles(_dungeonData.CorridorTiles);
-            }
-
-            // Wände zeichnen
-            if (_dungeonData.WallTiles != null && _dungeonData.WallTiles.Count > 0)
-            {
-                _tilemapVisualizer.PaintTiles(_tilemapVisualizer.floorTilemap, _tilemapVisualizer.wallTile, _dungeonData.WallTiles);
             }
         }
 
