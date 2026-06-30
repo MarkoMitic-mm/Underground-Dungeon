@@ -21,11 +21,7 @@ public class PlayerCollisionHandler : MonoBehaviour
         SetupSpriteRendering();
     }
 
-    void FixedUpdate()
-    {
-        // Prüfe die aktuelle Position des Spielers und passe die Sortierung an
-        UpdatePlayerSorting();
-    }
+    // FixedUpdate no longer calls UpdatePlayerSorting
 
     /// <summary>
     /// Überprüft, ob eine Position für den Spieler begehbar ist.
@@ -34,7 +30,7 @@ public class PlayerCollisionHandler : MonoBehaviour
     public bool IsPositionWalkable(Vector3 position)
     {
         Vector2Int tilePos = Vector2Int.FloorToInt(new Vector2(position.x, position.y));
-        return _dungeonData.FloorTiles.Contains(tilePos) || 
+        return _dungeonData.FloorTiles.Contains(tilePos) ||
                _dungeonData.CorridorTiles.Contains(tilePos);
     }
 
@@ -62,7 +58,7 @@ public class PlayerCollisionHandler : MonoBehaviour
             if (!IsPositionWalkable(point))
             {
                 return false;
-            }
+        }
         }
 
         return true;
@@ -77,20 +73,7 @@ public class PlayerCollisionHandler : MonoBehaviour
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            spriteRenderer.sortingOrder = 0;
-        }
-    }
-
-    /// <summary>
-    /// Aktualisiert die Sortierungsreihenfolge des Spielers basierend auf seiner Y-Position.
-    /// Sprites mit höherer Y-Position werden unter Sprites mit niedrigerer Y-Position gezeichnet.
-    /// </summary>
-    private void UpdatePlayerSorting()
-    {
-        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
-        if (spriteRenderer != null)
-        {
-            spriteRenderer.sortingOrder = Mathf.RoundToInt(-_rb.position.y * 100);
+            spriteRenderer.sortingOrder = 10;
         }
     }
 }

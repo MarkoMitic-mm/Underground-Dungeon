@@ -90,7 +90,7 @@ namespace DungeonGeneration
             // Wände auf der Tilemap visualisieren
             if (_dungeonData.WallTiles != null && _dungeonData.WallTiles.Count > 0)
             {
-                _tilemapVisualizer.PaintTiles(_tilemapVisualizer.floorTilemap, _tilemapVisualizer.wallTile, _dungeonData.WallTiles);
+                _tilemapVisualizer.PaintTiles(_tilemapVisualizer.wallTilemap, _tilemapVisualizer.wallTile, _dungeonData.WallTiles);
             }
 
             // Spieler an der Spawn-Position platzieren
