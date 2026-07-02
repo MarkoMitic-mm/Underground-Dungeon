@@ -9,9 +9,12 @@ public class PlayerController : MonoBehaviour
     private PlayerCollisionHandler _collisionHandler;
     private Vector2 _lastValidPosition;
 
+    private Animator _animator;
+
     void Start()
     {
         _rb = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
         _collisionHandler = GetComponent<PlayerCollisionHandler>();
         _lastValidPosition = _rb.position;
     }
@@ -19,6 +22,9 @@ public class PlayerController : MonoBehaviour
     void OnMove(InputValue value)
     {
         _moveInput = value.Get<Vector2>();
+        _animator.SetFloat("MoveX", _moveInput.x);
+        _animator.SetFloat("MoveY", _moveInput.y);
+        _animator.SetBool("IsMoving", _moveInput.sqrMagnitude > 0.01f);
     }
 
     void FixedUpdate()
@@ -40,4 +46,6 @@ public class PlayerController : MonoBehaviour
             _rb.position = _lastValidPosition;
         }
     }
+
+
 }
