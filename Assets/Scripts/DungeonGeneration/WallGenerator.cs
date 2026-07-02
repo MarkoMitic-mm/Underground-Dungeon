@@ -22,14 +22,18 @@ public class WallGenerator
         // Durchlaufe alle Boden-Tiles und prüfe deren Nachbarn
         foreach (var floorTile in allFloorTiles)
         {
-            // Prüfe alle 4 Nachbarpositionen (oben, unten, links, rechts)
+            // Prüfe alle 8 Nachbarpositionen (oben, unten, links, rechts und diagonal)
             Vector2Int[] neighbors = new[]
             {
                 floorTile + Vector2Int.up,
                 floorTile + Vector2Int.down,
                 floorTile + Vector2Int.left,
-                floorTile + Vector2Int.right
-            };
+                floorTile + Vector2Int.right,
+                floorTile + Vector2Int.up + Vector2Int.left,
+                floorTile + Vector2Int.up + Vector2Int.right,
+                floorTile + Vector2Int.down + Vector2Int.left,
+                floorTile + Vector2Int.down + Vector2Int.right
+};
 
             foreach (var neighbor in neighbors)
             {
