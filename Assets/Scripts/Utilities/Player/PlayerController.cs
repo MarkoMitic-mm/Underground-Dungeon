@@ -8,7 +8,6 @@ public class PlayerController : MonoBehaviour
     private Vector2 _moveInput;
     private PlayerCollisionHandler _collisionHandler;
     private Vector2 _lastValidPosition;
-    private Vector2 _lastMoveDirection = Vector2.down;
 
     private Animator _animator;
 
@@ -23,15 +22,8 @@ public class PlayerController : MonoBehaviour
     void OnMove(InputValue value)
     {
         _moveInput = value.Get<Vector2>();
-
-        if (_moveInput.sqrMagnitude > 0.01f)
-        {
-            _lastMoveDirection = _moveInput.normalized;
-
-            _animator.SetFloat("MoveX", _lastMoveDirection.x);
-            _animator.SetFloat("MoveY", _lastMoveDirection.y);
-        }
-
+        _animator.SetFloat("MoveX", _moveInput.x);
+        _animator.SetFloat("MoveY", _moveInput.y);
         _animator.SetBool("IsMoving", _moveInput.sqrMagnitude > 0.01f);
     }
 
